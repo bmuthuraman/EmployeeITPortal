@@ -43,6 +43,15 @@ namespace Infrastructure.Repositories
             return await conn.QueryAsync<Request>(sql, new { category, priority });
         }
 
+        public async Task<IEnumerable<Request>> GetAllAsync()
+        {
+            using var conn = _factory.CreateConnection();
+
+            var sql = "SELECT * FROM Requests";
+
+            return await conn.QueryAsync<Request>(sql);
+        }
+
         public async Task<IEnumerable<Request>> GetByUserAsync(string username)
         {
             using var conn = _factory.CreateConnection();

@@ -29,6 +29,12 @@ namespace API.Controllers
             return Ok(await _repo.GetAllAsync(category, priority));
         }
 
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAll()
+        {
+            return Ok(await _repo.GetAllAsync());
+        }
+
         [HttpGet("user/{username}")]
         public async Task<IActionResult> GetByUser(string username)
         {

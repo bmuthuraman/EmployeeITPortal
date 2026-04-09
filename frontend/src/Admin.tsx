@@ -6,31 +6,46 @@ function Admin() {
   const [list, setList] = useState<Request[]>([]);
   const [filters, setFilters] = useState<any>({});
 
+  // 🔹 Load all records (no filters from backend)
   const load = async () => {
-    const res = await API.get<Request[]>("/Requests", { params: filters });
+    const res = await API.get<Request[]>("/Requests/all");
     setList(res.data);
   };
 
-  useEffect(() => { load(); }, [filters]);
+  useEffect(() => {
+    load();
+  }, []);
 
+  // 🔹 Client-side filtering
+  const filteredList = list.filter((r) => {
+    return (
+      (!filters.category || r.category === filters.category) &&
+      (!filters.priority || r.priority === filters.priority)
+    );
+  });
+
+  // 🔹 Update status
   const updateStatus = async (id: number, status: string) => {
     await API.put(`/Requests/${id}/status`, `"${status}"`, {
       headers: { "Content-Type": "application/json" }
     });
-    load();
+    load(); // refresh after update
   };
 
   return (
-    <div>
+    <div className="container mt-3">
 
-      {/* FILTERS */}
+      {/* 🔹 FILTERS */}
       <div className="card mb-3">
         <div className="card-body d-flex gap-3">
 
           <select
             className="form-select w-auto"
             onChange={(e) =>
-              setFilters({ ...filters, category: e.target.value || undefined })
+              setFilters({
+                ...filters,
+                category: e.target.value || undefined
+              })
             }
           >
             <option value="">All Categories</option>
@@ -43,7 +58,10 @@ function Admin() {
           <select
             className="form-select w-auto"
             onChange={(e) =>
-              setFilters({ ...filters, priority: e.target.value || undefined })
+              setFilters({
+                ...filters,
+                priority: e.target.value || undefined
+              })
             }
           >
             <option value="">All Priority</option>
@@ -55,7 +73,7 @@ function Admin() {
         </div>
       </div>
 
-      {/* TABLE */}
+      {/* 🔹 TABLE */}
       <div className="card">
         <div className="card-header">All Requests</div>
         <div className="card-body">
@@ -72,7 +90,7 @@ function Admin() {
             </thead>
 
             <tbody>
-              {list.map((r) => (
+              {filteredList.map((r) => (
                 <tr key={r.id}>
                   <td>{r.title}</td>
                   <td>{r.category}</td>
@@ -83,7 +101,10 @@ function Admin() {
                   <td>
                     <select
                       className="form-select"
-                      onChange={(e) => updateStatus(r.id!, e.target.value)}
+                      value={r.status}
+                      onChange={(e) =>
+                        updateStatus(r.id!, e.target.value)
+                      }
                     >
                       <option>Open</option>
                       <option>In Progress</option>
@@ -93,6 +114,14 @@ function Admin() {
                   </td>
                 </tr>
               ))}
+
+              {filteredList.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="text-center">
+                    No records found
+                  </td>
+                </tr>
+              )}
             </tbody>
 
           </table>
